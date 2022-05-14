@@ -30,6 +30,7 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
         this.builder = builder;
         this.from = root;
         this.mapField = mapField;
+        this.mappedFrom.put(".", root);
     }
 
     @Override
@@ -50,12 +51,18 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
             StringBuilder acc = new StringBuilder(attrs[0]);
             for (int i = 1; i < attrs.length; i++) {
                 var attr = attrs[i - 1];
-                from = mappedFrom.computeIfAbsent(acc.toString(), key -> from.join(attr));
+                from = mappedFrom.computeIfAbsent(acc.toString(),
+                        key -> mappedFrom.get(getJoinEntity(key)).join(attr));
                 acc.append('.').append(attrs[i]);
             }
         } else {
             this.attribute = text;
         }
+    }
+
+    private String getJoinEntity(String key) {
+        var split = key.split("\\.");
+        return split.length <= 1 ? "." : split[split.length - 2];
     }
 
     @Override

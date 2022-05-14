@@ -147,7 +147,7 @@ class CriteriaRQueryLangListenerIntegrationTest {
             session.save(blogPost);
         });
 
-        executeQuery("author.lastName = 'One'", Post.class, authorQuery ->
+        executeQuery("author.lastName = 'One' || comments.content = 'Comment 1'", Post.class, authorQuery ->
                 assertDoesNotThrow(authorQuery::getSingleResult));
 
         executeQuery("comments.content = 'Comment 1'", Post.class, authorQuery ->
