@@ -1,6 +1,8 @@
-package br.com.caiquejh.rquery;
+package br.com.caiquejh.rquery.model;
 
 import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
@@ -14,6 +16,9 @@ public class Person {
 
     protected Integer age;
     protected Address address;
+
+    @Enumerated(EnumType.STRING)
+    protected Gender gender;
 
     public String getFirstName() {
         return firstName;
@@ -45,5 +50,13 @@ public class Person {
 
     public void setAddress(Address address) {
         this.address = address;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 }

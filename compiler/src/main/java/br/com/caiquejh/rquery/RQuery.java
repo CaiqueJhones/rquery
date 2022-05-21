@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 public class RQuery<T> {
@@ -15,8 +16,12 @@ public class RQuery<T> {
     private final Root<T> root;
 
     private RQuery(CriteriaBuilder cb, Class<T> typeOfEntity) {
+        this(cb.createQuery(typeOfEntity).from(typeOfEntity), cb);
+    }
+
+    private RQuery(Root<T> root, CriteriaBuilder cb) {
+        this.root = root;
         this.cb = cb;
-        this.root = cb.createQuery(typeOfEntity).from(typeOfEntity);
     }
 
     public Predicate parse(String query) throws RQueryException {
@@ -27,7 +32,7 @@ public class RQuery<T> {
         parser.addErrorListener(new BaseErrorListener() {
             @Override
             public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-                throw new RQueryException("Failed to parse at line " + line + " and at column " +  charPositionInLine +" due to " + msg);
+                throw new RQueryException("Failed to parse at line " + line + " and at column " + charPositionInLine + " due to " + msg);
             }
         });
         parser.query();
@@ -40,5 +45,13 @@ public class RQuery<T> {
 
     public static <T> RQuery<T> from(CriteriaBuilder cb, Class<T> typeOfEntity) {
         return new RQuery<>(cb, typeOfEntity);
+    }
+
+    public static <T> RQuery<T> from(Root<T> root, CriteriaBuilder cb) {
+        return new RQuery<>(root, cb);
+    }
+
+    public static <T> void registerConverter(Class<T> classOfT, Function<String, T> converter) {
+        ValueConverter.register(classOfT, converter);
     }
 }

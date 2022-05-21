@@ -1,6 +1,8 @@
-package br.com.caiquejh.rquery;
+package br.com.caiquejh.rquery.model;
 
 import javax.persistence.*;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -15,15 +17,26 @@ public class Author extends Person {
     @Column(name = "email")
     private String email;
 
+    private Instant createdAt;
+
+    private Date updatedAt;
+
     public Author() {
     }
 
-    public Author(String firstName, String lastName, String email, Integer age, Address address) {
+    public Author(String firstName, String lastName, String email, Integer age, Address address, Gender gender) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.age = age;
         this.address = address;
+        this.gender = gender;
+        this.createdAt = Instant.now();
+        this.updatedAt = new Date();
+    }
+
+    public Author(String firstName, String lastName, String email, Integer age, Address address) {
+        this(firstName, lastName, email, age, address, Gender.UNDEFINED);
     }
 
     public Integer getId() {
@@ -40,6 +53,22 @@ public class Author extends Person {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override

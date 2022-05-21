@@ -1,7 +1,6 @@
 package br.com.caiquejh.rquery;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 
 import javax.persistence.criteria.*;
 import java.util.*;
@@ -68,14 +67,9 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
     @Override
     public void exitValue(RQueryLangParser.ValueContext ctx) {
         if (ctx.STRING() != null) {
-            value = parseString(ctx.STRING().getText());
+            value = ValueConverter.convert(from.getJavaType(), attribute, parseString(ctx.STRING().getText()));
         } else if (ctx.NUMBER() != null) {
-            var text = ctx.NUMBER().getText();
-            if (NumberUtils.isDigits(text)) {
-                value = Integer.parseInt(text);
-            } else if (NumberUtils.isCreatable(text)) {
-                value = Double.parseDouble(text);
-            }
+            value = ValueConverter.convert(from.getJavaType(), attribute, ctx.NUMBER().getText());
         }
         list.add(value);
     }

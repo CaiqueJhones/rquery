@@ -25,10 +25,10 @@
         <property name="hibernate.dbcp.minIdle">5</property>
         <property name="hibernate.dbcp.maxWaitMillis">-1</property>
 
-        <mapping class="br.com.caiquejh.rquery.Address" />
-        <mapping class="br.com.caiquejh.rquery.Author" />
-        <mapping class="br.com.caiquejh.rquery.Category" />
-        <mapping class="br.com.caiquejh.rquery.Comment" />
-        <mapping class="br.com.caiquejh.rquery.Post" />
+        <mapping class="br.com.caiquejh.rquery.model.Address" />
+        <mapping class="br.com.caiquejh.rquery.model.Author" />
+        <mapping class="br.com.caiquejh.rquery.model.Category" />
+        <mapping class="br.com.caiquejh.rquery.model.Comment" />
+        <mapping class="br.com.caiquejh.rquery.model.Post" />
     </session-factory>
 </hibernate-configuration>

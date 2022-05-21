@@ -1,4 +1,4 @@
-package br.com.caiquejh.rquery;
+package br.com.caiquejh.rquery.model;
 
 import javax.persistence.Embeddable;
 import java.util.Objects;

@@ -1,6 +1,7 @@
 package br.com.caiquejh.rquery;
 
 import br.com.caiquejh.rquery.exception.RQueryException;
+import br.com.caiquejh.rquery.model.*;
 import org.antlr.v4.runtime.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
