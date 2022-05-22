@@ -3,21 +3,22 @@ package br.com.caiquejh.rquery;
 import br.com.caiquejh.rquery.exception.RQueryException;
 import org.antlr.v4.runtime.*;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
+/**
+ * RQuery lang entry point
+ *
+ * @param <T> Type of entity
+ * @author Caique Oliveira
+ */
 public class RQuery<T> {
 
     private final CriteriaBuilder cb;
     private final Root<T> root;
-
-    private RQuery(CriteriaBuilder cb, Class<T> typeOfEntity) {
-        this(cb.createQuery(typeOfEntity).from(typeOfEntity), cb);
-    }
 
     private RQuery(Root<T> root, CriteriaBuilder cb) {
         this.root = root;
@@ -39,14 +40,14 @@ public class RQuery<T> {
         return listener.toPredicate();
     }
 
-    public static <T> RQuery<T> from(EntityManager em, Class<T> typeOfEntity) {
-        return from(em.getCriteriaBuilder(), typeOfEntity);
-    }
-
-    public static <T> RQuery<T> from(CriteriaBuilder cb, Class<T> typeOfEntity) {
-        return new RQuery<>(cb, typeOfEntity);
-    }
-
+    /**
+     * Create from root and criteria builder
+     *
+     * @param root the root type
+     * @param cb   the criteria builder
+     * @param <T>  type of entity
+     * @return instance of RQuery for root
+     */
     public static <T> RQuery<T> from(Root<T> root, CriteriaBuilder cb) {
         return new RQuery<>(root, cb);
     }
