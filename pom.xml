@@ -10,6 +10,7 @@
     <version>1.0.0</version>
     <modules>
         <module>compiler</module>
+        <module>spring-sample</module>
     </modules>
 
     <properties>
