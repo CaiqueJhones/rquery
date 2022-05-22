@@ -19,7 +19,7 @@
         <persistence-api.version>2.2.3</persistence-api.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <junit.version>5.8.2</junit.version>
-        <hibernate.version>5.6.8.final</hibernate.version>
+        <hibernate.version>5.6.8.Final</hibernate.version>
         <h2.version>1.4.200</h2.version>
     </properties>
 
