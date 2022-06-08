@@ -125,13 +125,19 @@ class CriteriaRQueryLangListenerIntegrationTest {
         executeQuery("firstName = 'Charles' && age >= 30", Author.class, authorQuery ->
                 assertEquals(darwin, authorQuery.getSingleResult()));
 
-        executeQuery("(firstName = 'Charles' && age >= 30) || firstName contains '.'", Author.class, authorQuery ->
-                assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
+        executeQuery("firstName = 'Charles' and age >= 30", Author.class, authorQuery ->
+                assertEquals(darwin, authorQuery.getSingleResult()));
 
         executeQuery("(firstName = 'Charles' && age >= 30) || (firstName contains '.' && email is not null)", Author.class, authorQuery ->
                 assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
 
+        executeQuery("(firstName = 'Charles' && age >= 30) or (firstName contains '.' && email is not null)", Author.class, authorQuery ->
+                assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
+
         executeQuery("firstName = 'Charles' && (age < 30 || email is null)", Author.class, authorQuery ->
+                assertEquals(darwin, authorQuery.getSingleResult()));
+
+        executeQuery("firstName = 'Charles' and (age < 30 or email is null)", Author.class, authorQuery ->
                 assertEquals(darwin, authorQuery.getSingleResult()));
     }
 

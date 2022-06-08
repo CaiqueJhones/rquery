@@ -1,10 +1,15 @@
 package br.com.caiquejh.rquery;
 
-import org.apache.commons.lang3.ObjectUtils;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.*;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
 
@@ -18,6 +23,10 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
     private String attribute;
     private Object value;
     private List<Object> list;
+
+    private Operation operation;
+    private List<Operation> termLogicalOperators;
+    private List<Operation> queryLogicalOperators;
 
     private Deque<Predicate> terms;
     private Deque<Predicate> expressions;
@@ -37,6 +46,8 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
         terms = new LinkedList<>();
         expressions = new LinkedList<>();
         list = new LinkedList<>();
+        termLogicalOperators = new LinkedList<>();
+        queryLogicalOperators = new LinkedList<>();
     }
 
     @Override
@@ -84,72 +95,109 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
     }
 
     @Override
+    public void exitOp_relational(RQueryLangParser.Op_relationalContext ctx) {
+        operation = Operation.fromToken(ctx.getText().trim());
+    }
+
+    @Override
+    public void exitOp_bool(RQueryLangParser.Op_boolContext ctx) {
+        operation = extractOperation(ctx);
+    }
+
+    @Override
+    public void exitOp_string(RQueryLangParser.Op_stringContext ctx) {
+        operation = extractOperation(ctx);
+    }
+
+    @Override
+    public void exitOp_list(RQueryLangParser.Op_listContext ctx) {
+        operation = extractOperation(ctx);
+    }
+
+    @Override
+    public void exitOp_between(RQueryLangParser.Op_betweenContext ctx) {
+        operation = Operation.fromToken(ctx.getText().trim());
+    }
+
+    @Override
+    public void exitOp_logical(RQueryLangParser.Op_logicalContext ctx) {
+        if (ctx.parent instanceof RQueryLangParser.TermContext) {
+            termLogicalOperators.add(Operation.fromToken(ctx.getText().trim()));
+        } else if (ctx.parent instanceof RQueryLangParser.QueryContext) {
+            queryLogicalOperators.add(Operation.fromToken(ctx.getText().trim()));
+        }
+    }
+
+    private Operation extractOperation(ParserRuleContext ctx) {
+        return Operation.fromToken(ctx.children.stream()
+                .map(ParseTree::getText)
+                .collect(Collectors.joining(" ")));
+    }
+
+    @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void exitExpression(RQueryLangParser.ExpressionContext ctx) {
-        if (ctx.OP_RELATIONAL() != null) {
-            Path<? extends Comparable> path = from.get(attribute);
-            switch (ctx.OP_RELATIONAL().getText()) {
-                case "=":
-                    currentPredicate = builder.equal(path, value);
-                    break;
-                case "<>": case "!=":
-                    currentPredicate = builder.notEqual(path, value);
-                    break;
-                case ">":
-                    currentPredicate = builder.greaterThan(path, (Comparable) value);
-                    break;
-                case ">=":
-                    currentPredicate = builder.greaterThanOrEqualTo(path, (Comparable) value);
-                    break;
-                case "<":
-                    currentPredicate = builder.lessThan(path, (Comparable) value);
-                    break;
-                case "<=":
-                    currentPredicate = builder.lessThanOrEqualTo(path, (Comparable) value);
-                    break;
-            }
-        } else if (ctx.OP_BOOL() != null) {
-            switch (ctx.OP_BOOL().getText().trim()) {
-                case "is true":
-                    currentPredicate = builder.isTrue(from.get(attribute));
-                    break;
-                case "is false":
-                    currentPredicate = builder.isFalse(from.get(attribute));
-                    break;
-                case "is null":
-                    currentPredicate = builder.isNull(from.get(attribute));
-                    break;
-                case "is not null":
-                    currentPredicate = builder.isNotNull(from.get(attribute));
-                    break;
-            }
-        } else if (ctx.OP_STRING() != null) {
-            String string = parseString(ctx.STRING().getText()).toUpperCase();
-            switch (ctx.OP_STRING().getText().trim()) {
-                case "contains":
-                    currentPredicate = builder.like(builder.upper(from.get(attribute)), "%" + string + "%");
-                    break;
-                case "starts":
-                    currentPredicate = builder.like(builder.upper(from.get(attribute)), string + "%");
-                    break;
-                case "not contains":
-                    currentPredicate = builder.notLike(builder.upper(from.get(attribute)), "%" + string + "%");
-                    break;
-                case "not starts":
-                    currentPredicate = builder.notLike(builder.upper(from.get(attribute)), string + "%");
-                    break;
-            }
-        } else if (ctx.OP_LIST() != null) {
-            switch (ctx.OP_LIST().getText().trim()) {
-                case "in":
-                    currentPredicate = from.get(attribute).in(list);
-                    break;
-                case "not in":
-                    currentPredicate = builder.not(from.get(attribute).in(list));
-                    break;
-            }
-        } else if (ctx.OP_BETWEEN() != null && "between".equals(ctx.OP_BETWEEN().getText().trim())) {
-            currentPredicate = builder.between(from.get(attribute), (Comparable) list.get(list.size() - 2), (Comparable) list.get(list.size() - 1));
+        String string = null;
+        if (ctx.STRING() != null) {
+            string = parseString(ctx.STRING().getText()).toUpperCase();
+        }
+        switch (operation) {
+            case EQUAL:
+                currentPredicate = builder.equal(from.get(attribute), value);
+                break;
+            case NOT_EQUAL:
+                currentPredicate = builder.notEqual(from.get(attribute), value);
+                break;
+            case GREATER_THAN:
+                currentPredicate = builder.greaterThan(from.get(attribute), (Comparable) value);
+                break;
+            case GREATER_EQUAL_THAN:
+                currentPredicate = builder.greaterThanOrEqualTo(from.get(attribute), (Comparable) value);
+                break;
+            case LESS_THAN:
+                currentPredicate = builder.lessThan(from.get(attribute), (Comparable) value);
+                break;
+            case LESS_EQUAL_THAN:
+                currentPredicate = builder.lessThanOrEqualTo(from.get(attribute), (Comparable) value);
+                break;
+            case IS_TRUE:
+                currentPredicate = builder.isTrue(from.get(attribute));
+                break;
+            case IS_FALSE:
+                currentPredicate = builder.isFalse(from.get(attribute));
+                break;
+            case IS_NULL:
+                currentPredicate = builder.isNull(from.get(attribute));
+                break;
+            case IS_NOT_NULL:
+                currentPredicate = builder.isNotNull(from.get(attribute));
+                break;
+            case CONTAINS:
+                currentPredicate = builder.like(builder.upper(from.get(attribute)),
+                        "%" + string + "%");
+                break;
+            case STARTS:
+                currentPredicate = builder.like(builder.upper(from.get(attribute)),
+                        string + "%");
+                break;
+            case NOT_CONTAINS:
+                currentPredicate = builder.notLike(builder.upper(from.get(attribute)),
+                        "%" + string + "%");
+                break;
+            case NOT_STARTS:
+                currentPredicate = builder.notLike(builder.upper(from.get(attribute)),
+                        string + "%");
+                break;
+            case IN:
+                currentPredicate = from.get(attribute).in(list);
+                break;
+            case NOT_IN:
+                currentPredicate = builder.not(from.get(attribute).in(list));
+                break;
+            case BETWEEN:
+                currentPredicate = builder.between(from.get(attribute),
+                        (Comparable) list.get(list.size() - 2), (Comparable) list.get(list.size() - 1));
+                break;
         }
         expressions.add(currentPredicate);
     }
@@ -161,55 +209,57 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
 
     @Override
     public void exitTerm(RQueryLangParser.TermContext ctx) {
-        if (ObjectUtils.isNotEmpty(ctx.OP_LOGICAL())) {
-            ctx.OP_LOGICAL().forEach(opLogical -> {
-                switch (opLogical.getText().trim()) {
-                    case "&&":
-                        if (expressionsResult == null) {
-                            expressionsResult = builder.and(expressions.pollFirst(), expressions.pollFirst());
-                        } else {
-                            expressionsResult = builder.and(expressionsResult, expressions.pollFirst());
-                        }
-                        break;
-                    case "||":
-                        if (expressionsResult == null) {
-                            expressionsResult = builder.or(expressions.pollFirst(), expressions.pollFirst());
-                        } else {
-                            expressionsResult = builder.or(expressionsResult, expressions.pollFirst());
-                        }
-                        break;
-                }
-            });
-        } else {
+        for (Operation operation : termLogicalOperators) {
+            switch (operation) {
+                case AND:
+                    if (expressionsResult == null) {
+                        expressionsResult = builder.and(expressions.pollFirst(), expressions.pollFirst());
+                    } else {
+                        expressionsResult = builder.and(expressionsResult, expressions.pollFirst());
+                    }
+                    break;
+                case OR:
+                    if (expressionsResult == null) {
+                        expressionsResult = builder.or(expressions.pollFirst(), expressions.pollFirst());
+                    } else {
+                        expressionsResult = builder.or(expressionsResult, expressions.pollFirst());
+                    }
+                    break;
+            }
+
+        }
+        if (termLogicalOperators.isEmpty()) {
             expressionsResult = expressions.pollFirst();
         }
         terms.add(expressionsResult);
+        termLogicalOperators.clear();
     }
 
     @Override
-    public void exitConditional_expression(RQueryLangParser.Conditional_expressionContext ctx) {
-        if (ObjectUtils.isNotEmpty(ctx.OP_LOGICAL())) {
-            ctx.OP_LOGICAL().forEach(opLogical -> {
-                switch (opLogical.getText().trim()) {
-                    case "&&":
-                        if (termsResult == null) {
-                            termsResult = builder.and(terms.pollFirst(), terms.pollFirst());
-                        } else {
-                            termsResult = builder.and(termsResult, terms.pollFirst());
-                        }
-                        break;
-                    case "||":
-                        if (termsResult == null) {
-                            termsResult = builder.or(terms.pollFirst(), terms.pollFirst());
-                        } else {
-                            termsResult = builder.or(termsResult, terms.pollFirst());
-                        }
-                        break;
-                }
-            });
-        } else {
+    public void exitQuery(RQueryLangParser.QueryContext ctx) {
+        for (Operation operation : queryLogicalOperators) {
+            switch (operation) {
+                case AND:
+                    if (termsResult == null) {
+                        termsResult = builder.and(terms.pollFirst(), terms.pollFirst());
+                    } else {
+                        termsResult = builder.and(termsResult, terms.pollFirst());
+                    }
+                    break;
+                case OR:
+                    if (termsResult == null) {
+                        termsResult = builder.or(terms.pollFirst(), terms.pollFirst());
+                    } else {
+                        termsResult = builder.or(termsResult, terms.pollFirst());
+                    }
+                    break;
+            }
+
+        }
+        if (queryLogicalOperators.isEmpty()) {
             termsResult = terms.pollFirst();
         }
+        queryLogicalOperators.clear();
     }
 
     public Predicate toPredicate() {

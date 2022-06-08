@@ -17,7 +17,7 @@ class ValueConverterTest {
     @Test
     void shouldCovertNumbers() {
         String valueInt = "1011";
-        String valueDecimal = "1.011";
+        String valueDecimal = "1.011e2";
         BigInteger expectedBigInteger = new BigInteger(valueInt);
         BigDecimal expectedBigDecimal = new BigDecimal(valueDecimal);
 

@@ -77,15 +77,15 @@ public class MyService {
 
 ### Operators
 
-| Operators  | Symbols                               | Example                        |
-|------------|---------------------------------------|--------------------------------|
-| Relational | `=`, `<`, `<=`, `>`, `>=`, `!=`, `<>` | `name = 'Jon'`                 |
-| Between    | `between ? and ?`                     | `age between 18 and 60`        |
-| Booleans   | `is true`, `is false`                 | `hasName is true`              |
-| Nullables  | `is null`, `is not null`              | `name is not null`             |
-| Strings    | `starts`, `contains`                  | `name contains 'Jon'`          |
-| List       | `in(?,...)`, `not in(?,...)`          | `gender in ('MALE', 'FEMALE')` |
-| Logical    | `&&`, <code>&#124;&#124;</code>       | `age > 10 && age < 100`        |
+| Operators  | Symbols                                      | Example                                 |
+|------------|----------------------------------------------|-----------------------------------------|
+| Relational | `=`, `<`, `<=`, `>`, `>=`, `!=`, `<>`        | `name = 'Jon'`                          |
+| Between    | `between ? and ?`                            | `age between 18 and 60`                 |
+| Booleans   | `is true`, `is false`                        | `hasName is true`                       |
+| Nullables  | `is null`, `is not null`                     | `name is not null`                      |
+| Strings    | `starts`, `contains`                         | `name contains 'Jon'`                   |
+| List       | `in(?,...)`, `not in(?,...)`                 | `gender in ('MALE', 'FEMALE')`          |
+| Logical    | `&&`, <code>&#124;&#124;</code>, `and`, `or` | `age > 10 && age < 100 or name is null` |
 
 ### Entities relationship
 
@@ -109,7 +109,7 @@ For example, assuming we have a json representation of a person with the followi
 }
 ```
 
-We can access the city field of the address as follows: `address.city = 'North'` and `children.firstName is not null`.
+We can access the city field of the address as follows: `address.city = 'North'` or `children.firstName is not null`.
 
 ### Supported Types
 
