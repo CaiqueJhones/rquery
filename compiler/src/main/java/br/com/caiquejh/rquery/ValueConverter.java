@@ -11,10 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -27,7 +24,7 @@ class ValueConverter {
 
     private static final ThreadLocal<DateFormat> DATE_FORMAT =
             ThreadLocal.withInitial(() -> {
-                var tz = TimeZone.getTimeZone(ZoneId.systemDefault());
+                TimeZone tz = TimeZone.getTimeZone(ZoneId.systemDefault());
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 df.setTimeZone(tz);
                 return df;
@@ -75,12 +72,12 @@ class ValueConverter {
     }
 
     public static Object convert(Class<?> fromType, String fieldName, String value) {
-        var classField = new ClassField(fromType, fieldName);
+        ClassField classField = new ClassField(fromType, fieldName);
         if (CLASS_FIELD_TYPE.containsKey(classField)) {
             return convert(CLASS_FIELD_TYPE.get(classField), value);
         }
         putAllTypeFromClass(fromType);
-        var typeOfField = requireNonNull(CLASS_FIELD_TYPE.get(classField));
+        Class<?> typeOfField = requireNonNull(CLASS_FIELD_TYPE.get(classField));
         return convert(typeOfField, value);
     }
 
@@ -94,7 +91,7 @@ class ValueConverter {
         } catch (RQueryException rqe) {
             throw rqe;
         } catch (Exception ex) {
-            var message = "Cannot convert to " + fieldType.getSimpleName() + " - ";
+            String message = "Cannot convert to " + fieldType.getSimpleName() + " - ";
             throw new RQueryException(message + ex.getMessage(), ex);
         }
     }
@@ -107,7 +104,35 @@ class ValueConverter {
         }
     }
 
-    private record ClassField(Class<?> type, String fieldName) {
+    private static class ClassField {
+        final Class<?> type;
+        final String fieldName;
+
+        public ClassField(Class<?> type, String fieldName) {
+            this.type = type;
+            this.fieldName = fieldName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ClassField that = (ClassField) o;
+            return Objects.equals(type, that.type) && Objects.equals(fieldName, that.fieldName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type, fieldName);
+        }
+
+        @Override
+        public String toString() {
+            return "ClassField{" +
+                    "type=" + type +
+                    ", fieldName='" + fieldName + '\'' +
+                    '}';
+        }
     }
 
 }

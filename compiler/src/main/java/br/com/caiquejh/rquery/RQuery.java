@@ -42,9 +42,9 @@ public class RQuery<T> {
      * @throws RQueryException if a syntax or semantic error occurs
      */
     public Predicate parse(String query) throws RQueryException {
-        var lexer = new RQueryLangLexer(CharStreams.fromString(query));
-        var parser = new RQueryLangParser(new CommonTokenStream(lexer));
-        var listener = new CriteriaRQueryLangListener<>(cb, root, fieldMapper);
+        RQueryLangLexer lexer = new RQueryLangLexer(CharStreams.fromString(query));
+        RQueryLangParser parser = new RQueryLangParser(new CommonTokenStream(lexer));
+        CriteriaRQueryLangListener<T> listener = new CriteriaRQueryLangListener<>(cb, root, fieldMapper);
         parser.addParseListener(listener);
         parser.addErrorListener(new BaseErrorListener() {
             @Override

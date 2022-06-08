@@ -41,15 +41,15 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
 
     @Override
     public void exitAttribute(RQueryLangParser.AttributeContext ctx) {
-        var text = ctx.getText();
+        String text = ctx.getText();
         text = mapField.apply(text);
         if (text.contains(".")) {
             int lastDotIndex = text.lastIndexOf('.');
             this.attribute = text.substring(lastDotIndex + 1);
-            var attrs = text.split("\\.");
+            String[] attrs = text.split("\\.");
             StringBuilder acc = new StringBuilder(attrs[0]);
             for (int i = 1; i < attrs.length; i++) {
-                var attr = attrs[i - 1];
+                String attr = attrs[i - 1];
                 from = mappedFrom.computeIfAbsent(acc.toString(),
                         key -> mappedFrom.get(getJoinEntity(key)).join(attr));
                 acc.append('.').append(attrs[i]);
@@ -60,7 +60,7 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
     }
 
     private String getJoinEntity(String key) {
-        var split = key.split("\\.");
+        String[] split = key.split("\\.");
         return split.length <= 1 ? "." : split[split.length - 2];
     }
 
@@ -88,38 +88,66 @@ class CriteriaRQueryLangListener<T> extends RQueryLangBaseListener {
     public void exitExpression(RQueryLangParser.ExpressionContext ctx) {
         if (ctx.OP_RELATIONAL() != null) {
             Path<? extends Comparable> path = from.get(attribute);
-            currentPredicate = switch (ctx.OP_RELATIONAL().getText()) {
-                case "=" -> builder.equal(path, value);
-                case "<>", "!=" -> builder.notEqual(path, value);
-                case ">" -> builder.greaterThan(path, (Comparable) value);
-                case ">=" -> builder.greaterThanOrEqualTo(path, (Comparable) value);
-                case "<" -> builder.lessThan(path, (Comparable) value);
-                case "<=" -> builder.lessThanOrEqualTo(path, (Comparable) value);
-                default -> null;
-            };
+            switch (ctx.OP_RELATIONAL().getText()) {
+                case "=":
+                    currentPredicate = builder.equal(path, value);
+                    break;
+                case "<>": case "!=":
+                    currentPredicate = builder.notEqual(path, value);
+                    break;
+                case ">":
+                    currentPredicate = builder.greaterThan(path, (Comparable) value);
+                    break;
+                case ">=":
+                    currentPredicate = builder.greaterThanOrEqualTo(path, (Comparable) value);
+                    break;
+                case "<":
+                    currentPredicate = builder.lessThan(path, (Comparable) value);
+                    break;
+                case "<=":
+                    currentPredicate = builder.lessThanOrEqualTo(path, (Comparable) value);
+                    break;
+            }
         } else if (ctx.OP_BOOL() != null) {
-            currentPredicate = switch (ctx.OP_BOOL().getText().trim()) {
-                case "is true" -> builder.isTrue(from.get(attribute));
-                case "is false" -> builder.isFalse(from.get(attribute));
-                case "is null" -> builder.isNull(from.get(attribute));
-                case "is not null" -> builder.isNotNull(from.get(attribute));
-                default -> null;
-            };
+            switch (ctx.OP_BOOL().getText().trim()) {
+                case "is true":
+                    currentPredicate = builder.isTrue(from.get(attribute));
+                    break;
+                case "is false":
+                    currentPredicate = builder.isFalse(from.get(attribute));
+                    break;
+                case "is null":
+                    currentPredicate = builder.isNull(from.get(attribute));
+                    break;
+                case "is not null":
+                    currentPredicate = builder.isNotNull(from.get(attribute));
+                    break;
+            }
         } else if (ctx.OP_STRING() != null) {
-            var string = parseString(ctx.STRING().getText()).toUpperCase();
-            currentPredicate = switch (ctx.OP_STRING().getText().trim()) {
-                case "contains" -> builder.like(builder.upper(from.get(attribute)), "%" + string + "%");
-                case "starts" -> builder.like(builder.upper(from.get(attribute)), string + "%");
-                case "not contains" -> builder.notLike(builder.upper(from.get(attribute)), "%" + string + "%");
-                case "not starts" -> builder.notLike(builder.upper(from.get(attribute)), string + "%");
-                default -> null;
-            };
+            String string = parseString(ctx.STRING().getText()).toUpperCase();
+            switch (ctx.OP_STRING().getText().trim()) {
+                case "contains":
+                    currentPredicate = builder.like(builder.upper(from.get(attribute)), "%" + string + "%");
+                    break;
+                case "starts":
+                    currentPredicate = builder.like(builder.upper(from.get(attribute)), string + "%");
+                    break;
+                case "not contains":
+                    currentPredicate = builder.notLike(builder.upper(from.get(attribute)), "%" + string + "%");
+                    break;
+                case "not starts":
+                    currentPredicate = builder.notLike(builder.upper(from.get(attribute)), string + "%");
+                    break;
+            }
         } else if (ctx.OP_LIST() != null) {
-            currentPredicate = switch (ctx.OP_LIST().getText().trim()) {
-                case "in" -> from.get(attribute).in(list);
-                case "not in" -> builder.not(from.get(attribute).in(list));
-                default -> null;
-            };
+            switch (ctx.OP_LIST().getText().trim()) {
+                case "in":
+                    currentPredicate = from.get(attribute).in(list);
+                    break;
+                case "not in":
+                    currentPredicate = builder.not(from.get(attribute).in(list));
+                    break;
+            }
         } else if (ctx.OP_BETWEEN() != null && "between".equals(ctx.OP_BETWEEN().getText().trim())) {
             currentPredicate = builder.between(from.get(attribute), (Comparable) list.get(list.size() - 2), (Comparable) list.get(list.size() - 1));
         }

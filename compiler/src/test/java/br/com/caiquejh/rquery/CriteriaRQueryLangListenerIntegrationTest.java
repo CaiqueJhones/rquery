@@ -12,10 +12,13 @@ import org.junit.jupiter.api.Test;
 
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
+import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CriteriaRQueryLangListenerIntegrationTest {
@@ -24,7 +27,7 @@ class CriteriaRQueryLangListenerIntegrationTest {
     @AfterEach
     void cleanUp() {
         doInTransactional(session -> {
-            var builder = session.getCriteriaBuilder();
+            CriteriaBuilder builder = session.getCriteriaBuilder();
             deleteAll(session, builder, Comment.class);
             deleteAll(session, builder, Post.class);
             deleteAll(session, builder, Author.class);
@@ -34,8 +37,8 @@ class CriteriaRQueryLangListenerIntegrationTest {
 
     @Test
     void shouldTestOperators() {
-        var darwin = new Author("Charles", "Darwin", null, 70, new Address("Street A", "700", true));
-        var tolkien = new Author("J. R. R.", "Tolkien", "tolkien@youmail.com", 30, new Address("Street B", "300", false));
+        Author darwin = new Author("Charles", "Darwin", null, 70, new Address("Street A", "700", true));
+        Author tolkien = new Author("J. R. R.", "Tolkien", "tolkien@youmail.com", 30, new Address("Street B", "300", false));
         doInTransactional(session -> {
             session.save(darwin);
             session.save(tolkien);
@@ -55,7 +58,7 @@ class CriteriaRQueryLangListenerIntegrationTest {
 
         /* greater or equals than */
         executeQuery("age >= 30", Author.class, authorQuery ->
-                assertIterableEquals(List.of(darwin, tolkien), authorQuery.getResultList()));
+                assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
 
         /* less than */
         executeQuery("age < 70", Author.class, authorQuery ->
@@ -63,7 +66,7 @@ class CriteriaRQueryLangListenerIntegrationTest {
 
         /* less or equals than */
         executeQuery("age <= 70", Author.class, authorQuery ->
-                assertIterableEquals(List.of(darwin, tolkien), authorQuery.getResultList()));
+                assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
 
         /* is true */
         executeQuery("address.isApartment is true", Author.class, authorQuery ->
@@ -103,7 +106,7 @@ class CriteriaRQueryLangListenerIntegrationTest {
 
         /* in */
         executeQuery("address.street in ('Street A', 'Street B')", Author.class, authorQuery ->
-                assertIterableEquals(List.of(darwin, tolkien), authorQuery.getResultList()));
+                assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
 
         /* in */
         executeQuery("address.street not in ('Street A', 'Street B')", Author.class, authorQuery ->
@@ -112,8 +115,8 @@ class CriteriaRQueryLangListenerIntegrationTest {
 
     @Test
     void shouldTestConjunctionAndDisjunction() {
-        var darwin = new Author("Charles", "Darwin", null, 70, new Address("Street A", "700", true));
-        var tolkien = new Author("J. R. R.", "Tolkien", "tolkien@youmail.com", 30, new Address("Street B", "300", false));
+        Author darwin = new Author("Charles", "Darwin", null, 70, new Address("Street A", "700", true));
+        Author tolkien = new Author("J. R. R.", "Tolkien", "tolkien@youmail.com", 30, new Address("Street B", "300", false));
         doInTransactional(session -> {
             session.save(darwin);
             session.save(tolkien);
@@ -123,10 +126,10 @@ class CriteriaRQueryLangListenerIntegrationTest {
                 assertEquals(darwin, authorQuery.getSingleResult()));
 
         executeQuery("(firstName = 'Charles' && age >= 30) || firstName contains '.'", Author.class, authorQuery ->
-                assertIterableEquals(List.of(darwin, tolkien), authorQuery.getResultList()));
+                assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
 
         executeQuery("(firstName = 'Charles' && age >= 30) || (firstName contains '.' && email is not null)", Author.class, authorQuery ->
-                assertIterableEquals(List.of(darwin, tolkien), authorQuery.getResultList()));
+                assertIterableEquals(asList(darwin, tolkien), authorQuery.getResultList()));
 
         executeQuery("firstName = 'Charles' && (age < 30 || email is null)", Author.class, authorQuery ->
                 assertEquals(darwin, authorQuery.getSingleResult()));
@@ -134,10 +137,10 @@ class CriteriaRQueryLangListenerIntegrationTest {
 
     @Test
     void shouldTestRelationship() {
-        var authorOne = new Author("Author", "One", "a_one@mail.com", 20, new Address("Street A", "109", true));
-        var authorTwo = new Author("Author", "Two", "a_two@mail.com", 26, new Address("Street A", "109", true));
-        var category = new Category("Programming");
-        var blogPost = new Post("My blog post", category, authorOne, List.of(
+        Author authorOne = new Author("Author", "One", "a_one@mail.com", 20, new Address("Street A", "109", true));
+        Author authorTwo = new Author("Author", "Two", "a_two@mail.com", 26, new Address("Street A", "109", true));
+        Category category = new Category("Programming");
+        Post blogPost = new Post("My blog post", category, authorOne, asList(
                 new Comment("Comment 1", authorTwo),
                 new Comment("Comment 2", authorOne)
         ));
@@ -159,7 +162,7 @@ class CriteriaRQueryLangListenerIntegrationTest {
     }
 
     private <T> void deleteAll(Session session, CriteriaBuilder builder, Class<T> type) {
-        var criteriaDelete = builder.createCriteriaDelete(type);
+        CriteriaDelete<T> criteriaDelete = builder.createCriteriaDelete(type);
         criteriaDelete.from(type);
         session.createQuery(criteriaDelete).executeUpdate();
     }
@@ -180,8 +183,8 @@ class CriteriaRQueryLangListenerIntegrationTest {
     }
 
     private <T> void executeQuery(String input, Class<T> typeOfT, Consumer<Query<T>> assertions) {
-        var lexer = new RQueryLangLexer(CharStreams.fromString(input));
-        var parser = new RQueryLangParser(new CommonTokenStream(lexer));
+        RQueryLangLexer lexer = new RQueryLangLexer(CharStreams.fromString(input));
+        RQueryLangParser parser = new RQueryLangParser(new CommonTokenStream(lexer));
         parser.addErrorListener(new BaseErrorListener() {
             @Override
             public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
@@ -189,11 +192,11 @@ class CriteriaRQueryLangListenerIntegrationTest {
             }
         });
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            var builder = session.getCriteriaBuilder();
-            var query = builder.createQuery(typeOfT);
-            var root = query.from(typeOfT);
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> query = builder.createQuery(typeOfT);
+            Root<T> root = query.from(typeOfT);
 
-            var listener = new CriteriaRQueryLangListener<>(builder, root, UnaryOperator.identity());
+            CriteriaRQueryLangListener<T> listener = new CriteriaRQueryLangListener<>(builder, root, UnaryOperator.identity());
             parser.addParseListener(listener);
             parser.query();
 

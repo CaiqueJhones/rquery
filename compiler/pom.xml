@@ -2,19 +2,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>rquery-parent</artifactId>
         <groupId>br.com.caiquejh</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rquery</artifactId>
+    <name>RQuery</name>
+    <description>RQuery is a simple query language on top of Criteria Query.</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-
         <antlr.version>4.10.1</antlr.version>
         <persistence-api.version>2.2.3</persistence-api.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>

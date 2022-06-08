@@ -16,10 +16,10 @@ class ValueConverterTest {
 
     @Test
     void shouldCovertNumbers() {
-        var valueInt = "1011";
-        var valueDecimal = "1.011";
-        var expectedBigInteger = new BigInteger(valueInt);
-        var expectedBigDecimal = new BigDecimal(valueDecimal);
+        String valueInt = "1011";
+        String valueDecimal = "1.011";
+        BigInteger expectedBigInteger = new BigInteger(valueInt);
+        BigDecimal expectedBigDecimal = new BigDecimal(valueDecimal);
 
         assertEquals(expectedBigInteger, convert(Example.class, "integer", valueInt));
         assertEquals(expectedBigDecimal, convert(Example.class, "decimal", valueDecimal));
@@ -27,25 +27,25 @@ class ValueConverterTest {
 
     @Test
     void shouldConvertUUIDType() {
-        var expectedUUID = UUID.randomUUID();
+        UUID expectedUUID = UUID.randomUUID();
         assertEquals(expectedUUID, convert(Example.class, "uuid", expectedUUID.toString()));
     }
 
     @Test
     void shouldConvertDateTimeTypes() {
-        var valueDateTime = "2022-05-21 15:00:00";
-        var valueDate = "2022-05-21";
-        var valueTime = "15:00:00";
+        String valueDateTime = "2022-05-21 15:00:00";
+        String valueDate = "2022-05-21";
+        String valueTime = "15:00:00";
 
-        var offset = OffsetDateTime.now().getOffset();
+        ZoneOffset offset = OffsetDateTime.now().getOffset();
 
-        var expectedLocalDate = LocalDate.of(2022, 5, 21);
-        var expectedLocalTime = LocalTime.of(15, 0);
-        var expectedLocalDateTime = LocalDateTime.of(expectedLocalDate, expectedLocalTime);
-        var expectedZonedDateTime = expectedLocalDateTime.atZone(ZoneId.systemDefault());
-        var expectedInstant = expectedZonedDateTime.toInstant();
-        var expectedOffsetDateTime = expectedLocalDateTime.atOffset(offset);
-        var expectedDate = Date.from(expectedInstant);
+        LocalDate expectedLocalDate = LocalDate.of(2022, 5, 21);
+        LocalTime expectedLocalTime = LocalTime.of(15, 0);
+        LocalDateTime expectedLocalDateTime = LocalDateTime.of(expectedLocalDate, expectedLocalTime);
+        ZonedDateTime expectedZonedDateTime = expectedLocalDateTime.atZone(ZoneId.systemDefault());
+        Instant expectedInstant = expectedZonedDateTime.toInstant();
+        OffsetDateTime expectedOffsetDateTime = expectedLocalDateTime.atOffset(offset);
+        Date expectedDate = Date.from(expectedInstant);
 
         assertEquals(expectedInstant, convert(Example.class, "instant", valueDateTime));
         assertEquals(expectedLocalDateTime, convert(Example.class, "localDateTime", valueDateTime));
@@ -58,8 +58,8 @@ class ValueConverterTest {
 
     @Test
     void shouldConvertEnum() {
-        var value = "MALE";
-        var expectedGender = Gender.MALE;
+        String value = "MALE";
+        Gender expectedGender = Gender.MALE;
         assertEquals(expectedGender, convert(Example.class, "gender", value));
     }
 
