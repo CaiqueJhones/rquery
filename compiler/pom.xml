@@ -15,7 +15,7 @@
     <description>RQuery is a simple query language on top of Criteria Query.</description>
 
     <properties>
-        <antlr.version>4.10.1</antlr.version>
+        <antlr.version>4.9.3</antlr.version>
         <persistence-api.version>2.2.3</persistence-api.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <junit.version>5.8.2</junit.version>
