@@ -9,8 +9,6 @@
     </parent>
 
     <artifactId>rquery</artifactId>
-    <name>RQuery</name>
-    <description>RQuery is a simple query language on top of Criteria Query.</description>
 
     <properties>
         <antlr.version>4.9.3</antlr.version>

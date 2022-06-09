@@ -3,8 +3,21 @@ RQuery
 
 [![Build Status](https://github.com/CaiqueJhones/rquery/workflows/CI/badge.svg)](https://github.com/CaiqueJhones/rquery/actions)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/br.com.caiquejh/rquery-parent/badge.svg)](https://maven-badges.herokuapp.com/maven-central/br.com.caiquejh/rquery-parent)
 
 RQuery is a simple query language on top of Criteria Query.
+
+## Download
+
+Import the rquery in your pom
+
+```xml
+<dependency>
+    <groupId>br.com.caiquejh</groupId>
+    <artifactId>rquery</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
 ## Usage
 
